@@ -10,7 +10,12 @@ import java.util.List;
 
 interface PersistencyService {
     boolean insertMessage(Board board, String msg);
+
     int getNumberOfBoards();
+
     List<String> getMessages(Board board);
-    List<Board> getBoards();
+
+    List<Board> getBoards(String applicationId);
+
+    Board getBoard(int id);
 }

@@ -35,7 +35,7 @@ public class Dashboard extends HttpServlet {
         } catch (SQLException e) {
             throw new ServletException(e.getCause() + e.getMessage());
         }
-        List<Board> boards = databasePersistenceLayer.getBoards();
+        List<Board> boards = databasePersistenceLayer.getBoards(null);
         Map<Board, List<String>> boardMessageMap = new HashMap<Board, List<String>>();
         for (Board item : boards) {
             List<String> messageList = databasePersistenceLayer.getMessages(item);

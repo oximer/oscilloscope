@@ -145,21 +145,26 @@ public class DatabasePersistenceLayer implements PersistencyService {
         return result;
     }
 
-    public List<Board> getBoards() {
+    public List<Board> getBoards(String applicationId) {
         List<Board> result = new ArrayList<Board>();
         try {
             Statement stmt = connection.createStatement();
-            String sql = String.format("SELECT * FROM oscilloscope.Devices");
+            String sql;
+            if (applicationId == null || applicationId.isEmpty()) {
+                sql = String.format("SELECT * FROM oscilloscope.Devices");
+            } else {
+                sql = String.format("SELECT * FROM oscilloscope.Devices where applicationId = \"%s\"", applicationId);
+            }
             ResultSet rs = stmt.executeQuery(sql);
             while (rs.next()) {
                 int id = rs.getInt(1);
                 String name = rs.getString(2);
-                String applicationId = rs.getString(3);
+                String appId = rs.getString(3);
                 Timestamp timestamp = (rs.getTimestamp(4));
                 Board board = new Board();
                 board.setId(id);
                 board.setName(name);
-                board.setApplicationId(applicationId);
+                board.setApplicationId(appId);
                 board.setLastUpdated(timestamp);
                 result.add(board);
             }

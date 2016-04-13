@@ -34,8 +34,12 @@ public class MyMqttClient {
     }
 
     public void sendMessage(String applicationId, String boardId, String message) throws MqttException {
+        sendMessage(applicationId, boardId, message.getBytes());
+    }
+
+    public void sendMessage(String applicationId, String boardId, byte[] bytes) throws MqttException {
         MqttMessage mqttMessage = new MqttMessage();
-        mqttMessage.setPayload(message.getBytes());
+        mqttMessage.setPayload(bytes);
         String topic = String.format("/down/%s/%s/%s/", applicationId, MqttPublishSample.OSCILLOSCOPE_PORT, boardId);
         System.out.println(topic);
         mClient.publish(topic, mqttMessage);

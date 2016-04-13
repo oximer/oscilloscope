@@ -46,9 +46,13 @@ public class TemporaryPersistanceLayer implements PersistencyService {
         return new ArrayList<String>();
     }
 
-    public List<Board> getBoards() {
+    public List<Board> getBoards(String applicationId) {
         //TODO implement it.
         return new ArrayList<Board>();
+    }
+
+    public Board getBoard(int id) {
+        return null;
     }
 
     @Override
