@@ -10,7 +10,7 @@ import org.glassfish.jersey.server.ResourceConfig;
 public class OscilloscopeApplication extends ResourceConfig {
 
     public OscilloscopeApplication() {
-        packages("edu.cmu.oscilloscope");
+        packages("edu.cmu.lpsoca.oscilloscope");
         register(BoardService.class);
         register(CommandService.class);
         register(StartService.class);
