@@ -1,6 +1,7 @@
 package edu.cmu.lpsoca.persistance;
 
 import edu.cmu.lpsoca.model.Board;
+import edu.cmu.lpsoca.model.Message;
 
 import java.util.*;
 
@@ -24,14 +25,14 @@ public class TemporaryPersistanceLayer implements PersistencyService {
         return mInstance;
     }
 
-    public synchronized boolean insertMessage(Board board, String msg) {
+    public synchronized boolean insertMessage(Board board, Message msg) {
         if (!mBoardLinkedList.containsKey(board)) mBoardLinkedList.put(board, new LinkedList<String>());
 
         Queue<String> stringArrayList = mBoardLinkedList.get(board);
         if (stringArrayList.size() > 5) {
             stringArrayList.poll();
         }
-        stringArrayList.add(msg);
+        stringArrayList.add(msg.toString());
 
         mBoardLinkedList.replace(board, stringArrayList);
         return true;
@@ -41,9 +42,9 @@ public class TemporaryPersistanceLayer implements PersistencyService {
         return mBoardLinkedList.keySet().size();
     }
 
-    public List<String> getMessages(Board board) {
+    public List<Message> getMessages(Board board) {
         //TODO implement it.
-        return new ArrayList<String>();
+        return new ArrayList<Message>();
     }
 
     public List<Board> getBoards(String applicationId) {

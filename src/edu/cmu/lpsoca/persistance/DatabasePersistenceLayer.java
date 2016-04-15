@@ -1,6 +1,7 @@
 package edu.cmu.lpsoca.persistance;
 
 import edu.cmu.lpsoca.model.Board;
+import edu.cmu.lpsoca.model.Message;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -42,7 +43,7 @@ public class DatabasePersistenceLayer implements PersistencyService {
         return mInstance;
     }
 
-    public boolean insertMessage(Board board, String msg) {
+    public boolean insertMessage(Board board, Message msg) {
         try {
 
             int id = getBoardId(board.getName());
@@ -52,14 +53,19 @@ public class DatabasePersistenceLayer implements PersistencyService {
 
             Calendar calendar = Calendar.getInstance();
             Timestamp timestamp = new Timestamp(calendar.getTime().getTime());
-            String sql = " insert into Messages (message, boardId, dateCreated)"
-                    + " values (?, ?, ?)";
+            String sql = " insert into Messages (boardId, taskId, sampleId, channel1, channel2, channel3, channel4, dateCreated)"
+                    + " values (?, ?, ?, ?, ?, ?, ?, ?)";
 
             // create the mysql insert preparedstatement
             PreparedStatement preparedStmt = connection.prepareStatement(sql);
-            preparedStmt.setString(1, msg);
-            preparedStmt.setInt(2, id);
-            preparedStmt.setTimestamp(3, timestamp);
+            preparedStmt.setInt(1, id);
+            preparedStmt.setInt(2, msg.getTaskId());
+            preparedStmt.setInt(3, 1);
+            preparedStmt.setFloat(4, msg.getChannel1());
+            preparedStmt.setFloat(5, msg.getChannel2());
+            preparedStmt.setFloat(6, msg.getChannel3());
+            preparedStmt.setFloat(7, msg.getChannel4());
+            preparedStmt.setTimestamp(8, timestamp);
             System.out.println(preparedStmt.toString());
             preparedStmt.execute();
             preparedStmt.close();
@@ -126,21 +132,19 @@ public class DatabasePersistenceLayer implements PersistencyService {
         return -1;
     }
 
-    public List<String> getMessages(Board board) {
-        List<String> result = new ArrayList<String>();
+    public List<Message> getMessages(Board board) {
+        List<Message> result = new ArrayList<Message>();
         try {
             int boardId = getBoardId(board.getName());
             Statement stmt = connection.createStatement();
-            String sql = String.format("SELECT message FROM oscilloscope.Messages WHERE boardId = %s", boardId);
+            String sql = String.format("SELECT * FROM oscilloscope.Messages WHERE boardId = %s", boardId);
             ResultSet rs = stmt.executeQuery(sql);
-            while (rs.next()) {
-                result.add(rs.getString(1));
-            }
+            result = getMessageFromSelectResultOnMessageTable(rs);
             rs.close();
             stmt.close();
             return result;
         } catch (Exception e) {
-            System.out.print("getBoardId" + e.getCause() + e.getMessage());
+            System.out.print("getMessages" + e.getCause() + e.getMessage());
         }
         return result;
     }
@@ -172,7 +176,7 @@ public class DatabasePersistenceLayer implements PersistencyService {
             stmt.close();
             return result;
         } catch (Exception e) {
-            System.out.print("getBoardId" + e.getCause() + e.getMessage());
+            System.out.print("getBoards" + e.getCause() + e.getMessage());
         }
         return result;
     }
@@ -209,6 +213,38 @@ public class DatabasePersistenceLayer implements PersistencyService {
             return result;
         } catch (Exception e) {
             System.out.print("getBoardId" + e.getCause() + e.getMessage());
+        }
+        return result;
+    }
+
+    public List<Message> getAllMessages(long startTimeStamp, long endTimeStamp) {
+        List<Message> result = new ArrayList<Message>();
+        try {
+            Statement stmt = connection.createStatement();
+            String sql;
+            sql = String.format("SELECT * FROM oscilloscope.Messages where dateCreated > \"%s\" AND dateCreated < \"%s\"", new Timestamp(startTimeStamp), new Timestamp(endTimeStamp));
+            ResultSet rs = stmt.executeQuery(sql);
+            result = getMessageFromSelectResultOnMessageTable(rs);
+            rs.close();
+            stmt.close();
+            return result;
+        } catch (Exception e) {
+            System.out.print("getAllMessages" + e.getCause() + e.getMessage());
+        }
+        return result;
+    }
+
+    private List<Message> getMessageFromSelectResultOnMessageTable(ResultSet rs) throws SQLException {
+        List<Message> result = new ArrayList<Message>();
+        while (rs.next()) {
+            int messageBoardId = rs.getInt(2);
+            int taskId = rs.getInt(3);
+            float channel1 = rs.getFloat(5);
+            float channel2 = rs.getFloat(6);
+            float channel3 = rs.getFloat(7);
+            float channel4 = rs.getFloat(8);
+            Message message = new Message(channel1, channel2, channel3, channel4, taskId, messageBoardId);
+            result.add(message);
         }
         return result;
     }

@@ -2,6 +2,7 @@ package edu.cmu.lpsoca.oscilloscope;
 
 import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
 import edu.cmu.lpsoca.oscilloscope.services.*;
+import org.apache.log4j.BasicConfigurator;
 import org.glassfish.jersey.server.ResourceConfig;
 
 /**
@@ -19,6 +20,7 @@ public class OscilloscopeApplication extends ResourceConfig {
         register(JacksonJaxbJsonProvider.class);
         register(io.swagger.jaxrs.listing.ApiListingResource.class);
         register(io.swagger.jaxrs.listing.SwaggerSerializers.class);
-
+        setApplicationName("Oscilloscope and Identification Service");
+        BasicConfigurator.configure();
     }
 }

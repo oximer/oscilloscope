@@ -1,7 +1,8 @@
 package edu.cmu.lpsoca.mqqt;
 
-import edu.cmu.lpsoca.persistance.DatabasePersistenceLayer;
 import edu.cmu.lpsoca.model.Board;
+import edu.cmu.lpsoca.persistance.DatabasePersistenceLayer;
+import edu.cmu.lpsoca.util.MqttMessageParser;
 import org.eclipse.paho.client.mqttv3.*;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 
@@ -49,7 +50,7 @@ public class MqttPublishSample {
                     str.nextToken(); //Ignore port
                     board.setName(str.nextToken());
                     board.setLastUpdated(new Timestamp(new Date().getTime()));
-                    databasePersistanceLayer.insertMessage(board, String.valueOf(mqttMessage));
+                    databasePersistanceLayer.insertMessage(board, MqttMessageParser.parseMessage(board.getId(), String.valueOf(mqttMessage)));
                 }
 
                 public void deliveryComplete(IMqttDeliveryToken iMqttDeliveryToken) {

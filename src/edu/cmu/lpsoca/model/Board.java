@@ -5,7 +5,7 @@ import java.sql.Timestamp;
 /**
  * Created by urbano on 4/5/16.
  */
-public class Board {
+public class Board implements Comparable<Board> {
     public int getId() {
         return id;
     }
@@ -60,5 +60,9 @@ public class Board {
 
     public void setLastUpdated(Timestamp lastUpdated) {
         this.lastUpdated = lastUpdated;
+    }
+
+    public int compareTo(Board o) {
+        return this.id - o.getId();
     }
 }

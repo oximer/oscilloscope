@@ -1,6 +1,7 @@
 package edu.cmu.lpsoca.persistance;
 
 import edu.cmu.lpsoca.model.Board;
+import edu.cmu.lpsoca.model.Message;
 
 import java.util.List;
 
@@ -9,11 +10,11 @@ import java.util.List;
  */
 
 interface PersistencyService {
-    boolean insertMessage(Board board, String msg);
+    boolean insertMessage(Board board, Message msg);
 
     int getNumberOfBoards();
 
-    List<String> getMessages(Board board);
+    List<Message> getMessages(Board board);
 
     List<Board> getBoards(String applicationId);
 
