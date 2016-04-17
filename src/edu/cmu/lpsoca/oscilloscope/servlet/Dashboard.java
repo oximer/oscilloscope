@@ -21,25 +21,35 @@ import java.util.*;
 @WebServlet(name = "Dashboard")
 public class Dashboard extends HttpServlet {
     public static final String BOARD_LIST = "boardList";
+    private DatabasePersistenceLayer databasePersistenceLayer;
+    final Logger logger = Logger.getLogger(Dashboard.class);
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-
     }
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        final Logger logger = Logger.getLogger(Dashboard.class);
-        try {
-            Class.forName("com.mysql.jdbc.Driver");
-        } catch (ClassNotFoundException e) {
-            throw new ServletException(e.getCause() + e.getMessage());
-        }
-        DatabasePersistenceLayer databasePersistenceLayer = null;
-        try {
-            databasePersistenceLayer = DatabasePersistenceLayer.getInstance();
-        } catch (SQLException e) {
-            throw new ServletException(e.getCause() + e.getMessage());
+        setupDatabase();
+
+        if (request.getParameter("board") != null && !request.getParameter("board").isEmpty()) {
+            prepareBoardPage(Integer.valueOf(request.getParameter("board")), request, response, databasePersistenceLayer);
+        } else {
+            prepareGenericDashboard(request, response, databasePersistenceLayer);
         }
 
+        databasePersistenceLayer.terminate();
+    }
+
+    private static void prepareBoardPage(int boardId, HttpServletRequest request, HttpServletResponse response, DatabasePersistenceLayer databasePersistenceLayer) throws ServletException, IOException {
+        long startTimeStamp = 0;
+        long stopTimeStamp = new Date().getTime();
+        List<Board> boards = databasePersistenceLayer.getBoards(null);
+        request.setAttribute(BOARD_LIST, boards);
+        request.setAttribute(PreparePowerChart.CHANNEL_CATEGORIES, PreparePowerChart.channelCategories());
+        request.setAttribute(PreparePowerChart.CHANNEL_ENERGY_SERIES, PreparePowerChart.getEnergyPerChannel(boardId, startTimeStamp, stopTimeStamp));
+        request.getRequestDispatcher("/web/board.jsp").forward(request, response);
+    }
+
+    private static void prepareGenericDashboard(HttpServletRequest request, HttpServletResponse response, DatabasePersistenceLayer databasePersistenceLayer) throws ServletException, IOException {
         List<Board> boards = databasePersistenceLayer.getBoards(null);
         Map<Board, List<Message>> boardMessageMap = new HashMap<Board, List<Message>>();
         Map<String, List<Board>> applicationList = new HashMap<String, List<Board>>();
@@ -64,12 +74,23 @@ public class Dashboard extends HttpServlet {
         request.setAttribute("boardsMessagesMap", boardMessageMap);
         request.setAttribute("ApplicationList", applicationList);
         String boardCategoriesJson = PreparePowerChart.boardCategories(boards);
-        String energyTaskSeries = PreparePowerChart.getEnergyPerTask(boards, startTimeStamp, stopTimeStamp);
-        logger.info(boardCategoriesJson);
-        logger.info(energyTaskSeries);
         request.setAttribute(PreparePowerChart.BOARD_CATEGORIES, boardCategoriesJson);
         request.setAttribute(PreparePowerChart.TASK_ENERGY_SERIES, PreparePowerChart.getEnergyPerTask(boards, startTimeStamp, stopTimeStamp));
-        databasePersistenceLayer.terminate();
+
         request.getRequestDispatcher("/web/index.jsp").forward(request, response);
+    }
+
+    private void setupDatabase() throws ServletException {
+        try {
+            Class.forName("com.mysql.jdbc.Driver");
+        } catch (ClassNotFoundException e) {
+            throw new ServletException(e.getCause() + e.getMessage());
+        }
+        databasePersistenceLayer = null;
+        try {
+            databasePersistenceLayer = DatabasePersistenceLayer.getInstance();
+        } catch (SQLException e) {
+            throw new ServletException(e.getCause() + e.getMessage());
+        }
     }
 }

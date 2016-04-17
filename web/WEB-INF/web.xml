@@ -16,9 +16,8 @@
     </servlet-mapping>
 
     <welcome-file-list>
-        <welcome-file>web/dashboard</welcome-file>
+        <welcome-file>jsp/index.jsp</welcome-file>
     </welcome-file-list>
-
     <!-- ========================================================================================================== -->
     <!-- Servlet container for Jersey -->
     <!-- ========================================================================================================== -->

@@ -218,11 +218,19 @@ public class DatabasePersistenceLayer implements PersistencyService {
     }
 
     public List<Message> getAllMessages(long startTimeStamp, long endTimeStamp) {
+        return getAllMessages(null, startTimeStamp, endTimeStamp);
+    }
+
+    public List<Message> getAllMessages(Integer boardId, long startTimeStamp, long endTimeStamp) {
         List<Message> result = new ArrayList<Message>();
         try {
             Statement stmt = connection.createStatement();
             String sql;
-            sql = String.format("SELECT * FROM oscilloscope.Messages where dateCreated > \"%s\" AND dateCreated < \"%s\"", new Timestamp(startTimeStamp), new Timestamp(endTimeStamp));
+            if (boardId != null) {
+                sql = String.format("SELECT * FROM oscilloscope.Messages where boardId = \"%s\" AND dateCreated > \"%s\" AND dateCreated < \"%s\"", boardId, new Timestamp(startTimeStamp), new Timestamp(endTimeStamp));
+            } else {
+                sql = String.format("SELECT * FROM oscilloscope.Messages where dateCreated > \"%s\" AND dateCreated < \"%s\"", new Timestamp(startTimeStamp), new Timestamp(endTimeStamp));
+            }
             ResultSet rs = stmt.executeQuery(sql);
             result = getMessageFromSelectResultOnMessageTable(rs);
             rs.close();
