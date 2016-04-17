@@ -132,10 +132,10 @@ public class PreparePowerChart {
             List<Float[]> energyPerChannelList = entry.getValue();
             double energy[] = new double[4];
             for (Float[] energyPerChannel : energyPerChannelList) {
-                energy[0] += energyPerChannel[0];
-                energy[1] += energyPerChannel[1];
-                energy[2] += energyPerChannel[2];
-                energy[3] += energyPerChannel[3];
+                energy[0] += AnalogToEnergyReader.convertToEnergy(energyPerChannel[0], 1);
+                energy[1] += AnalogToEnergyReader.convertToEnergy(energyPerChannel[1], 2);
+                energy[2] += AnalogToEnergyReader.convertToEnergy(energyPerChannel[2], 3);
+                energy[3] += AnalogToEnergyReader.convertToEnergy(energyPerChannel[3], 4);
             }
             energy[0] /= energyPerChannelList.size();
             energy[1] /= energyPerChannelList.size();
