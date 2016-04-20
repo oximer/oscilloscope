@@ -5,7 +5,7 @@ package edu.cmu.lpsoca.util;
  */
 public class AnalogToEnergyReader {
 
-    public static float convertToEnergy(float rawData, int channel) {
+    public static float convertToPower(float rawData, int channel) {
         final float vLoad = 3.3f;
         float vRead = ((rawData / 4096f) * 3.3f);
         final float amplifier = 25;

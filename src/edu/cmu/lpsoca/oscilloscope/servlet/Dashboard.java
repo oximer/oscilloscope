@@ -3,7 +3,11 @@ package edu.cmu.lpsoca.oscilloscope.servlet;
 import edu.cmu.lpsoca.model.Board;
 import edu.cmu.lpsoca.model.Message;
 import edu.cmu.lpsoca.persistance.DatabasePersistenceLayer;
-import edu.cmu.lpsoca.util.PreparePowerChart;
+import edu.cmu.lpsoca.util.chart.PreparePowerChart;
+import edu.cmu.lpsoca.util.chart.ui.DiscreteChartPerChannel;
+import edu.cmu.lpsoca.util.chart.ui.DiscreteChartPerTask;
+import edu.cmu.lpsoca.util.chart.ui.HistoricalChartPerBoard;
+import edu.cmu.lpsoca.util.chart.ui.HistoricalChartPerTask;
 import org.apache.log4j.Logger;
 
 import javax.servlet.ServletException;
@@ -45,7 +49,14 @@ public class Dashboard extends HttpServlet {
         List<Board> boards = databasePersistenceLayer.getBoards(null);
         request.setAttribute(BOARD_LIST, boards);
         request.setAttribute(PreparePowerChart.CHANNEL_CATEGORIES, PreparePowerChart.channelCategories());
-        request.setAttribute(PreparePowerChart.CHANNEL_ENERGY_SERIES, PreparePowerChart.getEnergyPerChannel(boardId, startTimeStamp, stopTimeStamp));
+        request.setAttribute(PreparePowerChart.CHANNEL_ENERGY_SERIES, DiscreteChartPerChannel.getPowerPerChannel(boardId, startTimeStamp, stopTimeStamp));
+
+        long beginXAxis = 1460831775000l;
+        long engXAxis = 1460831809000l;
+        List<String> listOfXIntervals = PreparePowerChart.getTimeIntervalCategoriesAsList(beginXAxis, engXAxis, 4);
+        request.setAttribute(PreparePowerChart.TIME_INTERVAL_CATEGORIES, Arrays.toString(listOfXIntervals.toArray()));
+        request.setAttribute(PreparePowerChart.TIME_INTERVAL_SERIES, HistoricalChartPerTask.getHistoricalPowerPerTask(boardId, beginXAxis, engXAxis, listOfXIntervals));
+
         request.getRequestDispatcher("/web/board.jsp").forward(request, response);
     }
 
@@ -75,7 +86,13 @@ public class Dashboard extends HttpServlet {
         request.setAttribute("ApplicationList", applicationList);
         String boardCategoriesJson = PreparePowerChart.boardCategories(boards);
         request.setAttribute(PreparePowerChart.BOARD_CATEGORIES, boardCategoriesJson);
-        request.setAttribute(PreparePowerChart.TASK_ENERGY_SERIES, PreparePowerChart.getEnergyPerTask(boards, startTimeStamp, stopTimeStamp));
+        request.setAttribute(PreparePowerChart.TASK_ENERGY_SERIES, DiscreteChartPerTask.getPowerPerTask(boards, startTimeStamp, stopTimeStamp));
+
+        long beginXAxis = 1460831775000l;
+        long engXAxis = 1460831809000l;
+        List<String> listOfXIntervals = PreparePowerChart.getTimeIntervalCategoriesAsList(beginXAxis, engXAxis, 4);
+        request.setAttribute(PreparePowerChart.TIME_INTERVAL_CATEGORIES, Arrays.toString(listOfXIntervals.toArray()));
+        request.setAttribute(PreparePowerChart.TIME_INTERVAL_SERIES, HistoricalChartPerBoard.getHistoricalPowerPerBoard(beginXAxis, engXAxis, listOfXIntervals));
 
         request.getRequestDispatcher("/web/index.jsp").forward(request, response);
     }

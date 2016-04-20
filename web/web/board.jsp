@@ -1,6 +1,6 @@
 <%@ page import="edu.cmu.lpsoca.model.Board" %>
 <%@ page import="edu.cmu.lpsoca.oscilloscope.servlet.Dashboard" %>
-<%@ page import="edu.cmu.lpsoca.util.PreparePowerChart" %>
+<%@ page import="edu.cmu.lpsoca.util.chart.PreparePowerChart" %>
 <%@ page import="java.util.List" %>
 <!--
 Author: W3layouts
@@ -132,15 +132,6 @@ SmartPhone Compatible web template, free WebDesigns for Nokia, Samsung, LG, Sony
                         </div>
                         <div class="form-body">
                             <div data-example-id="simple-form-inline">
-                                <div data-example-id="simple-form-inline">
-                                    <form class="form-inline">
-                                        <div class="form-group"><input type="email" class="form-control"
-                                                                       id="exampleInputEmail3"
-                                                                       placeholder="Sample Frequency"></div>
-                                        <button type="submit" class="btn btn-default">Sample</button>
-                                    </form>
-                                </div>
-                                </br>
                                 <button type="submit" class="btn btn-default hvr-radial-in">Start</button>
                                 <button type="submit" class="btn btn-default hvr-radial-in">Stop</button>
                             </div>
@@ -151,7 +142,7 @@ SmartPhone Compatible web template, free WebDesigns for Nokia, Samsung, LG, Sony
 
             <!--row-->
             <div class="row">
-                <div class="col-md-9">
+                <div class="col-md-12">
                     <div class="panel panel-widget">
                         <div class="panel-title">
                             Power Consumption
@@ -187,7 +178,7 @@ SmartPhone Compatible web template, free WebDesigns for Nokia, Samsung, LG, Sony
                                             tooltip: {
                                                 headerFormat: '<span style="font-size:10px">{point.key}</span><table>',
                                                 pointFormat: '<tr><td style="color:{series.color};padding:0">{series.name}: </td>' +
-                                                '<td style="padding:0"><b>{point.y:.1f} W</b></td></tr>',
+                                                '<td style="padding:0"><b>{point.y:.2f} W</b></td></tr>',
                                                 footerFormat: '</table>',
                                                 shared: true,
                                                 useHTML: true
@@ -199,6 +190,76 @@ SmartPhone Compatible web template, free WebDesigns for Nokia, Samsung, LG, Sony
                                                 }
                                             },
                                             series: <% out.print((String) request.getAttribute(PreparePowerChart.CHANNEL_ENERGY_SERIES));%>
+                                        });
+                                    });
+                                </script>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="clearfix"></div>
+            </div>
+            <!--//row-->
+
+            <!--row-->
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="panel panel-widget">
+                        <div class="panel-title">
+                            Power Consumption over time
+                            <ul class="panel-tools">
+                                <li><a class="icon minimise-tool"><i class="fa fa-minus"></i></a></li>
+                                <li><a class="icon expand-tool"><i class="fa fa-expand"></i></a></li>
+                                <li><a class="icon closed-tool"><i class="fa fa-times"></i></a></li>
+                            </ul>
+                        </div>
+                        <div class="panel-body">
+                            <div class="lines-points">
+                                <div id="power_overtime_container"
+                                     style="min-width: 310px; height: 400px; margin: 0 auto"></div>
+                                <script type="text/javascript">
+                                    $(function () {
+                                        var chart = new Highcharts.Chart({
+                                            chart: {
+                                                type: 'line',
+                                                renderTo: 'power_overtime_container'
+                                            },
+                                            title: {
+                                                text: 'Average Power Consumption over Time',
+                                                x: -20 //center
+                                            },
+                                            xAxis: {
+                                                categories: <% out.print((String) request.getAttribute(PreparePowerChart.TIME_INTERVAL_CATEGORIES));%>
+                                            },
+                                            yAxis: {
+                                                title: {
+                                                    text: 'Watts (W)'
+                                                },
+                                                plotLines: [{
+                                                    value: 0,
+                                                    width: 1,
+                                                    color: '#808080'
+                                                }],
+                                                labels: {
+                                                    format: '{value:.2f}'
+                                                }
+                                            },
+                                            tooltip: {
+                                                valueSuffix: 'W',
+                                                headerFormat: '<span style="font-size:10px">{point.key}</span><table>',
+                                                pointFormat: '<tr><td style="color:{series.color};padding:0">{series.name}: </td>' +
+                                                '<td style="padding:0"><b>{point.y:.2f} W</b></td></tr>',
+                                                footerFormat: '</table>',
+                                                shared: true,
+                                                useHTML: true
+                                            },
+                                            legend: {
+                                                layout: 'vertical',
+                                                align: 'right',
+                                                verticalAlign: 'middle',
+                                                borderWidth: 0
+                                            },
+                                            series: <% out.print((String) request.getAttribute(PreparePowerChart.TIME_INTERVAL_SERIES));%>
                                         });
                                     });
                                 </script>

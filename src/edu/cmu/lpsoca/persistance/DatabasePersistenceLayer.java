@@ -242,6 +242,52 @@ public class DatabasePersistenceLayer implements PersistencyService {
         return result;
     }
 
+    public int getNumberOfTasks(Integer boardId) {
+        int numberOfTasks = -1;
+        try {
+            Statement stmt = connection.createStatement();
+            String sql;
+            if (boardId != null) {
+                sql = String.format("SELECT COUNT(DISTINCT taskId) FROM oscilloscope.Messages where boardId = \"%s\"", boardId);
+            } else {
+                sql = String.format("SELECT COUNT(DISTINCT taskId) FROM oscilloscope.Messages");
+            }
+            ResultSet rs = stmt.executeQuery(sql);
+            while (rs.next()) {
+                numberOfTasks = rs.getInt(1);
+            }
+            rs.close();
+            stmt.close();
+            return numberOfTasks;
+        } catch (Exception e) {
+            System.out.print("getAllMessages" + e.getCause() + e.getMessage());
+        }
+        return numberOfTasks;
+    }
+
+    public List<Integer> getListOfTasks(Integer boardId) {
+        List<Integer> numberOfTasks = new ArrayList<>();
+        try {
+            Statement stmt = connection.createStatement();
+            String sql;
+            if (boardId != null) {
+                sql = String.format("SELECT DISTINCT taskId FROM oscilloscope.Messages where boardId = \"%s\"", boardId);
+            } else {
+                sql = String.format("SELECT DISTINCT taskId FROM oscilloscope.Messages");
+            }
+            ResultSet rs = stmt.executeQuery(sql);
+            while (rs.next()) {
+                numberOfTasks.add(rs.getInt(1));
+            }
+            rs.close();
+            stmt.close();
+            return numberOfTasks;
+        } catch (Exception e) {
+            System.out.print("getAllMessages" + e.getCause() + e.getMessage());
+        }
+        return numberOfTasks;
+    }
+
     private List<Message> getMessageFromSelectResultOnMessageTable(ResultSet rs) throws SQLException {
         List<Message> result = new ArrayList<Message>();
         while (rs.next()) {
@@ -256,4 +302,6 @@ public class DatabasePersistenceLayer implements PersistencyService {
         }
         return result;
     }
+
+
 }
