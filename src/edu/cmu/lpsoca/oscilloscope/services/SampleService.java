@@ -18,7 +18,7 @@ import java.sql.SQLException;
  * Created by urbano on 4/9/16.
  */
 @Path("/board")
-@Api(value = "/board")
+@Api(value = "/Board")
 public class SampleService {
 
     @POST
@@ -33,8 +33,10 @@ public class SampleService {
             @ApiResponse(code = 400, message = "Invalid arguments")})
     public boolean sample(@PathParam("id") int id, @ApiParam(value = "Frequency sampling between 1:100") @QueryParam("frequency") byte frequency, @ApiParam(value = "Sample time in seconds") @QueryParam("seconds") byte seconds) throws BoardNotFoundException, DatabaseConnectionError {
         try {
-            DatabasePersistenceLayer databasePersistenceLayer = DatabasePersistenceLayer.getInstance();
+            DatabasePersistenceLayer databasePersistenceLayer = new DatabasePersistenceLayer();
             Board board = databasePersistenceLayer.getBoard(id);
+            databasePersistenceLayer.terminate();
+
             if (board == null) {
                 throw new BoardNotFoundException(String.valueOf(id));
             }

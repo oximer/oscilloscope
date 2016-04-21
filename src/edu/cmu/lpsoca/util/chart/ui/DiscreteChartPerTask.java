@@ -1,12 +1,11 @@
 package edu.cmu.lpsoca.util.chart.ui;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.cmu.lpsoca.model.Board;
+import edu.cmu.lpsoca.model.ChartSeries;
 import edu.cmu.lpsoca.model.Message;
 import edu.cmu.lpsoca.persistance.DatabasePersistenceLayer;
 import edu.cmu.lpsoca.util.chart.PreparePowerChart;
-import edu.cmu.lpsoca.util.chart.ChartSeries;
 
 import javax.servlet.ServletException;
 import java.sql.SQLException;
@@ -17,16 +16,16 @@ import java.util.*;
  */
 public class DiscreteChartPerTask {
 
-    public static String getPowerPerTask(List<Board> boards, long startTimeStamp, long endTimeStamp) throws ServletException, JsonProcessingException {
+    public static List<ChartSeries> getPowerPerTask(List<Board> boards, long startTimeStamp, long endTimeStamp) throws ServletException, JsonProcessingException {
         DatabasePersistenceLayer databasePersistenceLayer = null;
         try {
-            databasePersistenceLayer = DatabasePersistenceLayer.getInstance();
+            databasePersistenceLayer = new DatabasePersistenceLayer();
         } catch (SQLException e) {
             throw new ServletException(e.getCause() + e.getMessage());
         }
 
-        //TODO THINK ABOUT A MORE EFFICIENT WAY OF DOING IT
         List<Message> listMessage = databasePersistenceLayer.getAllMessages(startTimeStamp, endTimeStamp);
+        databasePersistenceLayer.terminate();
 
         //Task, Board, Energy
         Map<Integer, Map<Integer, List<Float>>> taskToBoard = new TreeMap<Integer, Map<Integer, List<Float>>>();
@@ -69,8 +68,6 @@ public class DiscreteChartPerTask {
             chartSeriesList.add(chartSeries);
         }
 
-        ObjectMapper mapper = new ObjectMapper();
-        String jsonInString = mapper.writeValueAsString(chartSeriesList);
-        return jsonInString;
+        return chartSeriesList;
     }
 }

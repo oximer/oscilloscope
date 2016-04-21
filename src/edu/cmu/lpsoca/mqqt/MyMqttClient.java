@@ -13,7 +13,7 @@ public class MyMqttClient {
 
     private static MyMqttClient mInstance;
     private MqttClient mClient;
-    String broker = "tcp://54.191.239.210:1883";
+    String broker = "tcp://172.29.93.223:1883";
     String clientId = "Oscilloscope Server";
 
     public static MyMqttClient getInstance() throws MqttException {

@@ -1,11 +1,10 @@
 package edu.cmu.lpsoca.util.chart.ui;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.cmu.lpsoca.model.Message;
+import edu.cmu.lpsoca.model.NewChartSeries;
 import edu.cmu.lpsoca.persistance.DatabasePersistenceLayer;
 import edu.cmu.lpsoca.util.AnalogToEnergyReader;
-import edu.cmu.lpsoca.util.chart.ChartSeries;
 import edu.cmu.lpsoca.util.chart.HistoricalChartPerTaskSeriesHelper;
 
 import javax.servlet.ServletException;
@@ -20,10 +19,10 @@ import java.util.Map;
  */
 public class HistoricalChartPerTask {
 
-    public static String getHistoricalPowerPerTask(int boardId, long startTimeStamp, long endTimeStamp, List<String> listOfXAxisIntervals) throws ServletException, JsonProcessingException {
+    public static List<NewChartSeries> getHistoricalPowerPerTask(int boardId, long startTimeStamp, long endTimeStamp, List<String> listOfXAxisIntervals) throws ServletException, JsonProcessingException {
         DatabasePersistenceLayer databasePersistenceLayer = null;
         try {
-            databasePersistenceLayer = DatabasePersistenceLayer.getInstance();
+            databasePersistenceLayer = new DatabasePersistenceLayer();
         } catch (SQLException e) {
             throw new ServletException(e.getCause() + e.getMessage());
         }
@@ -45,13 +44,15 @@ public class HistoricalChartPerTask {
             }
         }
 
-        List<ChartSeries> newChartSerieList = new ArrayList<>();
+        databasePersistenceLayer.terminate();
+
+        List<NewChartSeries> newChartSerieList = new ArrayList<>();
+        String[] xAxisArray = listOfXAxisIntervals.toArray(new String[0]);
         for (Map.Entry<Integer, HistoricalChartPerTaskSeriesHelper> entry : taskToSerie.entrySet()) {
-            ChartSeries chartSeries = new ChartSeries(entry.getValue().getName(), entry.getValue().getRawData());
+            NewChartSeries chartSeries = new NewChartSeries(entry.getValue().getName(), entry.getValue().getRawData(), xAxisArray);
             newChartSerieList.add(chartSeries);
         }
-        ObjectMapper mapper = new ObjectMapper();
-        String jsonInString = mapper.writeValueAsString(newChartSerieList);
-        return jsonInString;
+
+        return newChartSerieList;
     }
 }

@@ -1,5 +1,6 @@
 <%@ page import="edu.cmu.lpsoca.model.Board" %>
-<%@ page import="edu.cmu.lpsoca.oscilloscope.servlet.Dashboard" %>
+<%@ page import="edu.cmu.lpsoca.oscilloscope.services.PowerService" %>
+<%@ page import="edu.cmu.lpsoca.oscilloscope.servlet.dashboardImpl.BoardDashboard" %>
 <%@ page import="edu.cmu.lpsoca.util.chart.PreparePowerChart" %>
 <%@ page import="java.util.List" %>
 <!--
@@ -75,7 +76,7 @@ SmartPhone Compatible web template, free WebDesigns for Nokia, Samsung, LG, Sony
                             <a href="#"><i class="fa fa-cogs nav_icon"></i>Boards<span class="fa arrow"></span></a>
                             <ul class="nav nav-second-level collapse">
                                 <%
-                                    List<Board> boards = (List<Board>) request.getAttribute(Dashboard.BOARD_LIST);
+                                    List<Board> boards = (List<Board>) request.getAttribute(BoardDashboard.BOARD_LIST);
                                     for (Board board : boards) {
                                         out.print(String.format("<li><a href=\"/web/dashboard?board=%d\">Board %d</a></li>", board.getId(), board.getId()));
                                     }
@@ -160,7 +161,32 @@ SmartPhone Compatible web template, free WebDesigns for Nokia, Samsung, LG, Sony
                                         var chart = new Highcharts.Chart({
                                             chart: {
                                                 type: 'column',
-                                                renderTo: 'power_container'
+                                                renderTo: 'power_container',
+                                                events: {
+                                                    load: function () {
+                                                        var getEnergyPerChannel = function () {
+                                                            $.get("../rest/board/<%out.print(String.valueOf(request.getAttribute(BoardDashboard.BOARDID)));%>/power/channel?lastMilliseconds=-1", function (data) {
+                                                                while (chart.series.length > 0)
+                                                                    chart.series[0].remove(true);
+
+                                                                var i;
+                                                                for (i = 0; i < data.length; i++) {
+                                                                    chart.addSeries({
+                                                                        name: data[i].name,
+                                                                        data: data[i].data
+                                                                    });
+                                                                }
+                                                                chart.redraw();
+                                                            });
+                                                        }
+
+                                                        getEnergyPerChannel();
+
+                                                        setInterval(function () {
+                                                            getEnergyPerChannel();
+                                                        }, <%out.print(PowerService.SAMPLE_RATE);%>);
+                                                    }
+                                                }
                                             },
                                             title: {
                                                 text: 'Average Power Consumption'
@@ -189,7 +215,8 @@ SmartPhone Compatible web template, free WebDesigns for Nokia, Samsung, LG, Sony
                                                     borderWidth: 0
                                                 }
                                             },
-                                            series: <% out.print((String) request.getAttribute(PreparePowerChart.CHANNEL_ENERGY_SERIES));%>
+                                            series: []
+                                            <%--<% out.print((String) request.getAttribute(PreparePowerChart.CHANNEL_ENERGY_SERIES));%>--%>
                                         });
                                     });
                                 </script>
@@ -222,14 +249,55 @@ SmartPhone Compatible web template, free WebDesigns for Nokia, Samsung, LG, Sony
                                         var chart = new Highcharts.Chart({
                                             chart: {
                                                 type: 'line',
-                                                renderTo: 'power_overtime_container'
+                                                renderTo: 'power_overtime_container',
+                                                events: {
+                                                    load: function () {
+                                                        setInterval(function () {
+                                                            var x;
+                                                            var y;
+                                                            y = $.get("../rest/board/<%out.print(String.valueOf(request.getAttribute(BoardDashboard.BOARDID)));%>/power/task", function (data) {
+                                                                for (var i = 0; i < data.length; i++) {
+                                                                    var serie = chart.series[i];
+                                                                    if (i == data.length - 1) {
+                                                                        serie.addPoint([data[i].x, data[i].y], true, true);
+                                                                    }
+                                                                    else {
+                                                                        serie.addPoint([data[i].x, data[i].y], false, true);
+                                                                    }
+                                                                }
+                                                            });
+                                                        }, <%out.print(PowerService.SAMPLE_RATE);%>);
+
+                                                        var x;
+                                                        var y;
+                                                        y = $.get("../rest/board/<%out.print(String.valueOf(request.getAttribute(BoardDashboard.BOARDID)));%>/power/task/historic", function (data) {
+                                                            for (var i = 0; i < data.length; i++) {
+                                                                chart.addSeries({
+                                                                    name: data[i].name,
+                                                                    data: (function () {
+                                                                        var data2 = [];
+                                                                        var j;
+                                                                        for (j = 0; j < data[i].x.length; j++) {
+                                                                            data2.push({
+                                                                                x: data[i].x[j],
+                                                                                y: data[i].y[j]
+                                                                            });
+                                                                        }
+                                                                        return data2;
+                                                                    }())
+                                                                });
+                                                            }
+                                                        });
+                                                    }
+                                                }
                                             },
                                             title: {
                                                 text: 'Average Power Consumption over Time',
                                                 x: -20 //center
                                             },
                                             xAxis: {
-                                                categories: <% out.print((String) request.getAttribute(PreparePowerChart.TIME_INTERVAL_CATEGORIES));%>
+                                                type: 'datetime',
+                                                tickPixelInterval: 100
                                             },
                                             yAxis: {
                                                 title: {
@@ -259,7 +327,7 @@ SmartPhone Compatible web template, free WebDesigns for Nokia, Samsung, LG, Sony
                                                 verticalAlign: 'middle',
                                                 borderWidth: 0
                                             },
-                                            series: <% out.print((String) request.getAttribute(PreparePowerChart.TIME_INTERVAL_SERIES));%>
+                                            series: []
                                         });
                                     });
                                 </script>

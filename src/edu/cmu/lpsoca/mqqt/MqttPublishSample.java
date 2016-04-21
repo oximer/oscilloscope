@@ -21,10 +21,10 @@ public class MqttPublishSample {
 
     public static void main(String[] args) throws SQLException {
 
-        String broker = "tcp://localhost:1883";
+        String broker = "tcp://172.29.93.223:1883";
         String clientId = "JavaSample";
         MemoryPersistence persistence = new MemoryPersistence();
-        final DatabasePersistenceLayer databasePersistanceLayer = DatabasePersistenceLayer.getInstance();
+        final DatabasePersistenceLayer databasePersistanceLayer = new DatabasePersistenceLayer();
 
         try {
             MqttClient sampleClient = new MqttClient(broker, clientId, persistence);

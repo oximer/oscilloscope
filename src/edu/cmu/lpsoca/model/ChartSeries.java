@@ -1,4 +1,4 @@
-package edu.cmu.lpsoca.util.chart;
+package edu.cmu.lpsoca.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;

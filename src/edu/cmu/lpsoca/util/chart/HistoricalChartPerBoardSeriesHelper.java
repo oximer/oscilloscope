@@ -47,12 +47,15 @@ public final class HistoricalChartPerBoardSeriesHelper {
         for (Map.Entry<String, Map<Integer, List<Double>>> entry : chartData.entrySet()) {
             Map<Integer, List<Double>> listOfValuesInsideSameCategory = entry.getValue();
             double taskSum = 0;
+            int taskSumCounter = 0;
             for (Map.Entry<Integer, List<Double>> entry2 : listOfValuesInsideSameCategory.entrySet()) {
                 if (entry2.getValue().size() > 0) {
                     taskSum += entry2.getValue().stream().mapToDouble(a -> a).average().getAsDouble();
+                    taskSumCounter++;
                 }
             }
-            data[counter] = taskSum;
+            taskSumCounter = taskSumCounter == 0 ? 1 : taskSumCounter;
+            data[counter] = taskSum / taskSumCounter;
             counter++;
         }
         return data;

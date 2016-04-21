@@ -1,7 +1,7 @@
 <%@ page import="edu.cmu.lpsoca.model.Board" %>
-<%@ page import="edu.cmu.lpsoca.oscilloscope.servlet.Dashboard" %>
+<%@ page import="edu.cmu.lpsoca.oscilloscope.services.PowerService" %>
+<%@ page import="edu.cmu.lpsoca.oscilloscope.servlet.dashboardImpl.GeneralDashboard" %>
 <%@ page import="edu.cmu.lpsoca.util.chart.PreparePowerChart" %>
-<%@ page import="java.util.Iterator" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Map" %>
 <!--
@@ -76,7 +76,7 @@ SmartPhone Compatible web template, free WebDesigns for Nokia, Samsung, LG, Sony
                             <a href="#"><i class="fa fa-cogs nav_icon"></i>Boards<span class="fa arrow"></span></a>
                             <ul class="nav nav-second-level collapse">
                                 <%
-                                    List<Board> boards = (List<Board>) request.getAttribute(Dashboard.BOARD_LIST);
+                                    List<Board> boards = (List<Board>) request.getAttribute(GeneralDashboard.BOARD_LIST);
                                     for (Board board : boards) {
                                         out.print(String.format("<li><a href=\"/web/dashboard?board=%d\">Board %d</a></li>", board.getId(), board.getId()));
                                     }
@@ -135,11 +135,22 @@ SmartPhone Compatible web template, free WebDesigns for Nokia, Samsung, LG, Sony
                         </div>
                         <div class="grid-right">
                             <h3>Boards <span>Connected</span></h3>
-                            <p>
-                                <%
-                                    Map<Board, List<String>> boardMessageMap = (Map<Board, List<String>>) request.getAttribute("boardsMessagesMap");
-                                    out.print(boardMessageMap.size());
-                                %>
+                            <p id="numberOfBoards">
+                                <script type="text/javascript">
+                                    $(function () {
+                                        var getNumberOfBoards = function () {
+                                            $.get("../rest/board", function (data) {
+                                                $('#numberOfBoards').empty()
+                                                $('#numberOfBoards').append(data.length);
+                                            });
+                                        }
+                                        getNumberOfBoards();
+
+                                        setInterval(function () {
+                                            getNumberOfBoards();
+                                        }, <%out.print(PowerService.SAMPLE_RATE);%>);
+                                    });
+                                </script>
                             </p>
                         </div>
                         <div class="clearfix"></div>
@@ -156,7 +167,7 @@ SmartPhone Compatible web template, free WebDesigns for Nokia, Samsung, LG, Sony
                             <h3>Application <span>Running</span></h3>
                             <p>
                                 <%
-                                    Map<String, List<Board>> applicationMap = (Map<String, List<Board>>) request.getAttribute("ApplicationList");
+                                    Map<String, List<Board>> applicationMap = (Map<String, List<Board>>) request.getAttribute(GeneralDashboard.APPLICATION_LIST);
                                     out.print(applicationMap.keySet().size());
                                 %>
                             </p>
@@ -179,20 +190,30 @@ SmartPhone Compatible web template, free WebDesigns for Nokia, Samsung, LG, Sony
                                 <li><a class="icon closed-tool"><i class="fa fa-times"></i></a></li>
                             </ul>
                         </div>
-                        <div class="panel-body">
-                            <%
-                                Iterator it = applicationMap.entrySet().iterator();
-                                while (it.hasNext()) {
-                                    Map.Entry pair = (Map.Entry) it.next();
-                                    out.print(String.format("<h3>%s</h3></br>", pair.getKey()));
-                                    List<Board> boardList = (List<Board>) pair.getValue();
-                                    for (Board board : boardList) {
-                                        out.print(String.format("<h4><p>%s</p></h4>", board.getId()));
+                        <div id="listOfBoards" class="panel-body">
+                            <script type="text/javascript">
+                                $(function () {
+                                    var getListOfBoards = function () {
+                                        $.get("../rest/board", function (data) {
+                                            var i;
+                                            $('#listOfBoards').empty();
+                                            for (i = 0; i < data.length; i++) {
+                                                if ($('#listOfBoards').find('#' + data[i].applicationId).length == 0) {
+                                                    $('#listOfBoards').append("<h3 id=" + data[i].applicationId + ">" + data[i].applicationId + "</h3></br>");
+                                                }
+                                                if ($('#' + data[i].applicationId).find('#' + data[i].id).length == 0) {
+                                                    $('#listOfBoards').append("<h4 id=" + data[i].id + "><p>" + data[i].id + " - " + data[i].name + "</p></h4></br>");
+                                                }
+                                            }
+                                        });
                                     }
-                                    out.print(String.format("</br>"));
-                                    it.remove();
-                                }
-                            %>
+                                    getListOfBoards();
+
+                                    setInterval(function () {
+                                        getListOfBoards();
+                                    }, <%out.print(PowerService.SAMPLE_RATE);%>);
+                                });
+                            </script>
                         </div>
                     </div>
                 </div>
@@ -212,10 +233,33 @@ SmartPhone Compatible web template, free WebDesigns for Nokia, Samsung, LG, Sony
                                 <div id="power_container" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
                                 <script type="text/javascript">
                                     $(function () {
-                                        var chart = new Highcharts.Chart({
+                                        var chart2 = new Highcharts.Chart({
                                             chart: {
                                                 type: 'column',
-                                                renderTo: 'power_container'
+                                                renderTo: 'power_container',
+                                                events: {
+                                                    load: function () {
+                                                        var getEnergyPerTask = function () {
+                                                            $.get("../rest/board/power/task?lastMilliseconds=-1", function (data) {
+                                                                while (chart2.series.length > 0)
+                                                                    chart2.series[0].remove(true);
+
+                                                                var i;
+                                                                for (i = 0; i < data.length; i++) {
+                                                                    chart2.addSeries({
+                                                                        name: data[i].name,
+                                                                        data: data[i].data
+                                                                    });
+                                                                }
+                                                                chart2.redraw();
+                                                            });
+                                                        }
+                                                        getEnergyPerTask();
+                                                        setInterval(function () {
+                                                            getEnergyPerTask();
+                                                        }, <%out.print(PowerService.SAMPLE_RATE);%>);
+                                                    }
+                                                }
                                             },
                                             title: {
                                                 text: 'Average Power Consumption per Board'
@@ -244,7 +288,8 @@ SmartPhone Compatible web template, free WebDesigns for Nokia, Samsung, LG, Sony
                                                     borderWidth: 0
                                                 }
                                             },
-                                            series: <% out.print((String) request.getAttribute(PreparePowerChart.TASK_ENERGY_SERIES));%>
+                                            series: []
+
                                         });
                                     });
                                 </script>
@@ -277,16 +322,55 @@ SmartPhone Compatible web template, free WebDesigns for Nokia, Samsung, LG, Sony
                                         var chart = new Highcharts.Chart({
                                             chart: {
                                                 type: 'line',
-                                                renderTo: 'power_overtime_container'
+                                                renderTo: 'power_overtime_container',
+                                                events: {
+                                                    load: function () {
+                                                        setInterval(function () {
+                                                            var x;
+                                                            var y;
+                                                            y = $.get("../rest/board/power", function (data) {
+                                                                for (var i = 0; i < data.length; i++) {
+                                                                    var serie = chart.series[i];
+                                                                    if (i == data.length - 1) {
+                                                                        serie.addPoint([data[i].x, data[i].y], true, true);
+                                                                    }
+                                                                    else {
+                                                                        serie.addPoint([data[i].x, data[i].y], false, true);
+                                                                    }
+                                                                }
+                                                            });
+                                                        }, <%out.print(PowerService.SAMPLE_RATE);%>);
+
+                                                        var x;
+                                                        var y;
+                                                        y = $.get("../rest/board/power/historic", function (data) {
+                                                            for (var i = 0; i < data.length; i++) {
+                                                                chart.addSeries({
+                                                                    name: data[i].name,
+                                                                    data: (function () {
+                                                                        var data2 = [];
+                                                                        var j;
+                                                                        for (j = 0; j < data[i].x.length; j++) {
+                                                                            data2.push({
+                                                                                x: data[i].x[j],
+                                                                                y: data[i].y[j]
+                                                                            });
+                                                                        }
+                                                                        return data2;
+                                                                    }())
+                                                                });
+                                                            }
+                                                        });
+                                                    }
+                                                }
                                             },
                                             title: {
                                                 text: 'Average Power Consumption over Time',
                                                 x: -20 //center
                                             },
                                             xAxis: {
-                                                categories: <% out.print((String) request.getAttribute(PreparePowerChart.TIME_INTERVAL_CATEGORIES));%>
-//                                                type: 'datetime',
-//                                                tickPixelInterval: 100
+                                                type: 'datetime',
+                                                tickPixelInterval: 100
                                             },
                                             yAxis: {
                                                 title: {
@@ -316,7 +400,7 @@ SmartPhone Compatible web template, free WebDesigns for Nokia, Samsung, LG, Sony
                                                 verticalAlign: 'middle',
                                                 borderWidth: 0
                                             },
-                                            series: <% out.print((String) request.getAttribute(PreparePowerChart.TIME_INTERVAL_SERIES));%>
+                                            series: {}
                                         });
                                     });
                                 </script>

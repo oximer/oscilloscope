@@ -16,34 +16,19 @@ public class DatabasePersistenceLayer implements PersistencyService {
 
     private static DatabasePersistenceLayer mInstance;
     private static final String CONNECTION = "jdbc:mysql://aa1kkwxqq0sjjq4.chj4zgaq2k1z.us-west-2.rds.amazonaws.com:3306/oscilloscope";
-    private static Connection connection;
+    private Connection connection;
 
-    private DatabasePersistenceLayer() {
+    public DatabasePersistenceLayer() throws SQLException {
+        Properties p = new Properties();
+        p.put("user", System.getProperty("DATABASE_USERNAME"));
+        p.put("password", System.getProperty("DATABASE_PASSWORD"));
+
+
+        connection = DriverManager.getConnection(CONNECTION, p);
+        connection.setAutoCommit(false);
     }
 
-    /**
-     * Single Design Pattern. It return a instance to access that base.
-     *
-     * @return
-     */
-    public static DatabasePersistenceLayer getInstance() throws SQLException {
-        if (mInstance == null) {
-            Properties p = new Properties();
-            p.put("user", System.getProperty("DATABASE_USERNAME"));
-            p.put("password", System.getProperty("DATABASE_PASSWORD"));
-
-
-            connection = DriverManager.getConnection(CONNECTION, p);
-            connection.setAutoCommit(false);
-
-
-            mInstance = new DatabasePersistenceLayer();
-        }
-
-        return mInstance;
-    }
-
-    public boolean insertMessage(Board board, Message msg) {
+    public synchronized boolean insertMessage(Board board, Message msg) {
         try {
 
             int id = getBoardId(board.getName());
@@ -77,7 +62,7 @@ public class DatabasePersistenceLayer implements PersistencyService {
         return false;
     }
 
-    private int registerBoard(Board board) {
+    private synchronized int registerBoard(Board board) {
         try {
             String sql = "insert into Devices (name, applicationId)"
                     + " values (?, ?);";
@@ -100,7 +85,7 @@ public class DatabasePersistenceLayer implements PersistencyService {
         return -1;
     }
 
-    private int getBoardId(String name) {
+    private synchronized int getBoardId(String name) {
         try {
             Statement stmt = connection.createStatement();
             String sql = String.format("SELECT id FROM oscilloscope.Devices WHERE name = \"%s\"", name);
@@ -116,7 +101,7 @@ public class DatabasePersistenceLayer implements PersistencyService {
         return -1;
     }
 
-    public int getNumberOfBoards() {
+    public synchronized int getNumberOfBoards() {
         try {
             Statement stmt = connection.createStatement();
             String sql = "SELECT COUNT(*) AS total FROM Devices";
@@ -132,7 +117,7 @@ public class DatabasePersistenceLayer implements PersistencyService {
         return -1;
     }
 
-    public List<Message> getMessages(Board board) {
+    public synchronized List<Message> getMessages(Board board) {
         List<Message> result = new ArrayList<Message>();
         try {
             int boardId = getBoardId(board.getName());
@@ -149,15 +134,15 @@ public class DatabasePersistenceLayer implements PersistencyService {
         return result;
     }
 
-    public List<Board> getBoards(String applicationId) {
+    public synchronized List<Board> getBoards(String applicationId) {
         List<Board> result = new ArrayList<Board>();
         try {
             Statement stmt = connection.createStatement();
             String sql;
             if (applicationId == null || applicationId.isEmpty()) {
-                sql = String.format("SELECT * FROM oscilloscope.Devices");
+                sql = String.format("SELECT * FROM oscilloscope.Devices ORDER BY id");
             } else {
-                sql = String.format("SELECT * FROM oscilloscope.Devices where applicationId = \"%s\"", applicationId);
+                sql = String.format("SELECT * FROM oscilloscope.Devices ORDER BY id where applicationId = \"%s\"", applicationId);
             }
             ResultSet rs = stmt.executeQuery(sql);
             while (rs.next()) {
@@ -190,7 +175,7 @@ public class DatabasePersistenceLayer implements PersistencyService {
         }
     }
 
-    public Board getBoard(int id) {
+    public synchronized Board getBoard(int id) {
         Board result = null;
         try {
             Statement stmt = connection.createStatement();
@@ -217,11 +202,11 @@ public class DatabasePersistenceLayer implements PersistencyService {
         return result;
     }
 
-    public List<Message> getAllMessages(long startTimeStamp, long endTimeStamp) {
+    public synchronized List<Message> getAllMessages(long startTimeStamp, long endTimeStamp) {
         return getAllMessages(null, startTimeStamp, endTimeStamp);
     }
 
-    public List<Message> getAllMessages(Integer boardId, long startTimeStamp, long endTimeStamp) {
+    public synchronized List<Message> getAllMessages(Integer boardId, long startTimeStamp, long endTimeStamp) {
         List<Message> result = new ArrayList<Message>();
         try {
             Statement stmt = connection.createStatement();
@@ -242,7 +227,7 @@ public class DatabasePersistenceLayer implements PersistencyService {
         return result;
     }
 
-    public int getNumberOfTasks(Integer boardId) {
+    public synchronized int getNumberOfTasks(Integer boardId) {
         int numberOfTasks = -1;
         try {
             Statement stmt = connection.createStatement();
@@ -265,7 +250,7 @@ public class DatabasePersistenceLayer implements PersistencyService {
         return numberOfTasks;
     }
 
-    public List<Integer> getListOfTasks(Integer boardId) {
+    public synchronized List<Integer> getListOfTasks(Integer boardId) {
         List<Integer> numberOfTasks = new ArrayList<>();
         try {
             Statement stmt = connection.createStatement();
@@ -288,7 +273,7 @@ public class DatabasePersistenceLayer implements PersistencyService {
         return numberOfTasks;
     }
 
-    private List<Message> getMessageFromSelectResultOnMessageTable(ResultSet rs) throws SQLException {
+    private synchronized List<Message> getMessageFromSelectResultOnMessageTable(ResultSet rs) throws SQLException {
         List<Message> result = new ArrayList<Message>();
         while (rs.next()) {
             int messageBoardId = rs.getInt(2);

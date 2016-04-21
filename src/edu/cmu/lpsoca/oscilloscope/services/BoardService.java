@@ -14,7 +14,7 @@ import java.util.List;
  * Created by urbano on 4/6/16.
  */
 @Path("/board")
-@Api(value = "/board", description = "Endpoint for Employee listing")
+@Api(value = "/Board", description = "Endpoint for Employee listing")
 public class BoardService {
 
 
@@ -26,7 +26,7 @@ public class BoardService {
             response = Board.class
     )
     public Board board(@ApiParam(value = "Use applicationId as filter") @PathParam("id") int boardId) throws SQLException {
-        DatabasePersistenceLayer databasePersistenceLayer = DatabasePersistenceLayer.getInstance();
+        DatabasePersistenceLayer databasePersistenceLayer = new DatabasePersistenceLayer();
         Board board = databasePersistenceLayer.getBoard(boardId);
         databasePersistenceLayer.terminate();
         return board;
@@ -42,7 +42,7 @@ public class BoardService {
             notes = "Leave blank the applicationId to not use filter"
     )
     public List<Board> board(@ApiParam(value = "Use applicationId as filter") @QueryParam("applicationId") String applicationId) throws SQLException {
-        DatabasePersistenceLayer databasePersistenceLayer = DatabasePersistenceLayer.getInstance();
+        DatabasePersistenceLayer databasePersistenceLayer = new DatabasePersistenceLayer();
         String appId = (applicationId == null || applicationId.isEmpty()) ? null : applicationId;
         List<Board> list = databasePersistenceLayer.getBoards(appId);
         databasePersistenceLayer.terminate();

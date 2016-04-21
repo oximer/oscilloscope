@@ -19,7 +19,7 @@ import java.sql.SQLException;
  * Created by urbano on 4/9/16.
  */
 @Path("/board")
-@Api(value = "/board")
+@Api(value = "/Board")
 public class StartService {
 
     @POST
@@ -36,7 +36,7 @@ public class StartService {
             @ApiResponse(code = 400, message = "Invalid arguments")})
     public boolean start(@PathParam("id") int id) throws BoardNotFoundException, DatabaseConnectionError {
         try {
-            DatabasePersistenceLayer databasePersistenceLayer = DatabasePersistenceLayer.getInstance();
+            DatabasePersistenceLayer databasePersistenceLayer = new DatabasePersistenceLayer();
             Board board = databasePersistenceLayer.getBoard(id);
             if (board == null) {
                 throw new BoardNotFoundException(String.valueOf(id));

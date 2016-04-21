@@ -23,9 +23,9 @@ public class MqttMessageParser {
         //byte 2 - channel 4
         byte[] decoded = Base64.getDecoder().decode(message);
 
-        if (decoded.length != 91) {
-            throw new IllegalArgumentException("Invalid message format");
-        }
+//        if (decoded.length != 90) {
+//            throw new IllegalArgumentException("Invalid message format");
+//        }
 
         for (int i = 0; i < 9; i++) {
             int taskId = Integer.valueOf(decoded[0 + (9 * i)]);

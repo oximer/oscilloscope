@@ -9,9 +9,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class ChartPoint {
 
     @JsonCreator
-    public ChartPoint(@JsonProperty("y") double y, @JsonProperty("x") long x) {
+    public ChartPoint(@JsonProperty("y") double y, @JsonProperty("x") long x, @JsonProperty("serie") String serie) {
         this.y = y;
         this.x = x;
+        this.serie = serie;
     }
 
     public double getY() {
@@ -30,6 +31,15 @@ public class ChartPoint {
         this.x = x;
     }
 
+    public String getSerie() {
+        return serie;
+    }
+
+    public void setSerie(String serie) {
+        this.serie = serie;
+    }
+
     public double y;
     public long x;
+    public String serie;
 }

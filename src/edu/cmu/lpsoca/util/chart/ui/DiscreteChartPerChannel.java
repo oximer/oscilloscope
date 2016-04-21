@@ -1,11 +1,10 @@
 package edu.cmu.lpsoca.util.chart.ui;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import edu.cmu.lpsoca.model.ChartSeries;
 import edu.cmu.lpsoca.model.Message;
 import edu.cmu.lpsoca.persistance.DatabasePersistenceLayer;
 import edu.cmu.lpsoca.util.AnalogToEnergyReader;
-import edu.cmu.lpsoca.util.chart.ChartSeries;
 
 import javax.servlet.ServletException;
 import java.sql.SQLException;
@@ -19,15 +18,16 @@ import java.util.Map;
  */
 public class DiscreteChartPerChannel {
 
-    public static String getPowerPerChannel(int boardId, long startTimeStamp, long endTimeStamp) throws ServletException, JsonProcessingException {
+    public static List<ChartSeries> getPowerPerChannel(int boardId, long startTimeStamp, long endTimeStamp) throws ServletException, JsonProcessingException {
         DatabasePersistenceLayer databasePersistenceLayer = null;
         try {
-            databasePersistenceLayer = DatabasePersistenceLayer.getInstance();
+            databasePersistenceLayer = new DatabasePersistenceLayer();
         } catch (SQLException e) {
             throw new ServletException(e.getCause() + e.getMessage());
         }
 
         List<Message> listMessage = databasePersistenceLayer.getAllMessages(boardId, startTimeStamp, endTimeStamp);
+        databasePersistenceLayer.terminate();
 
         HashMap<Integer, List<Float[]>> taskToChannel = new HashMap<>();
         for (Message message : listMessage) {
@@ -71,8 +71,7 @@ public class DiscreteChartPerChannel {
             chartSeriesList.add(chartSeries);
         }
 
-        ObjectMapper mapper = new ObjectMapper();
-        String jsonInString = mapper.writeValueAsString(chartSeriesList);
-        return jsonInString;
+        return chartSeriesList;
+
     }
 }

@@ -21,6 +21,7 @@ public class PreparePowerChart {
     public static final String CHANNEL_CATEGORIES = "channelCategories";
     public static final String TIME_INTERVAL_CATEGORIES = "timeIntervalCategories";
     public static final String TIME_INTERVAL_SERIES = "timeIntervalSeries";
+    public static final String BOARD_HISTORICAL_SERIES = "boardHistoricalSeries";
 
     public static String boardCategories(List<Board> boardList) {
         ArrayList<String> boardIdList = new ArrayList<String>();
