@@ -133,8 +133,26 @@ SmartPhone Compatible web template, free WebDesigns for Nokia, Samsung, LG, Sony
                         </div>
                         <div class="form-body">
                             <div data-example-id="simple-form-inline">
-                                <button type="submit" class="btn btn-default hvr-radial-in">Start</button>
-                                <button type="submit" class="btn btn-default hvr-radial-in">Stop</button>
+                                <button id="start" type="submit" class="btn btn-default hvr-radial-in">Start</button>
+                                <button id="stop" type="submit" class="btn btn-default hvr-radial-in">Stop</button>
+                                <script type="text/javascript">
+                                    $(function () {
+                                        $('#start').click(
+                                                function () {
+                                                    $.post("../rest/board/<%out.print(String.valueOf(request.getAttribute(BoardDashboard.BOARDID)));%>/start", function (data) {
+                                                        alert("Command sent");
+                                                    });
+                                                }
+                                        )
+                                        $('#stop').click(
+                                                function () {
+                                                    $.post("../rest/board/<%out.print(String.valueOf(request.getAttribute(BoardDashboard.BOARDID)));%>/stop", function (data) {
+                                                        alert("Command sent");
+                                                    });
+                                                }
+                                        )
+                                    });
+                                </script>
                             </div>
                         </div>
                     </div>
