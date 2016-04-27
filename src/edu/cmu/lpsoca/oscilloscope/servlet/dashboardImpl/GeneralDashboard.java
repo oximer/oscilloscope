@@ -18,8 +18,6 @@ import java.util.Map;
  * Created by urbano on 4/20/16.
  */
 public class GeneralDashboard {
-    public static final String BOARD_LIST = "boardList";
-    public static final String BOARD_MESSAGE_MAP = "boardMessageMap";
     public static final String APPLICATION_LIST = "ApplicationList";
 
     public static void prepareGenericDashboard(HttpServletRequest request, HttpServletResponse response, DatabasePersistenceLayer databasePersistenceLayer) throws ServletException, IOException {
@@ -40,11 +38,9 @@ public class GeneralDashboard {
 
         }
 
-        request.setAttribute(BOARD_LIST, boards);
         request.setAttribute(APPLICATION_LIST, applicationList);
         String boardCategoriesJson = PreparePowerChart.boardCategories(boards);
         request.setAttribute(PreparePowerChart.BOARD_CATEGORIES, boardCategoriesJson);
-
         request.getRequestDispatcher("/web/index.jsp").forward(request, response);
     }
 }

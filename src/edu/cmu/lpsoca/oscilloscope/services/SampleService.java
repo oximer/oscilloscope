@@ -8,6 +8,7 @@ import edu.cmu.lpsoca.oscilloscope.exceptions.DatabaseConnectionError;
 import edu.cmu.lpsoca.persistance.DatabasePersistenceLayer;
 import io.swagger.annotations.*;
 
+import javax.servlet.ServletException;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -41,8 +42,12 @@ public class SampleService {
                 throw new BoardNotFoundException(String.valueOf(id));
             }
             Command sample = new Sample(board, frequency, seconds);
-            return sample.execute();
+            boolean result = sample.execute();
+            databasePersistenceLayer.terminate();
+            return result;
         } catch (SQLException e) {
+            throw new DatabaseConnectionError(e);
+        } catch (ServletException e) {
             throw new DatabaseConnectionError(e);
         }
     }

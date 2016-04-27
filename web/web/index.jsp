@@ -74,13 +74,25 @@ SmartPhone Compatible web template, free WebDesigns for Nokia, Samsung, LG, Sony
                         </li>
                         <li>
                             <a href="#"><i class="fa fa-cogs nav_icon"></i>Boards<span class="fa arrow"></span></a>
-                            <ul class="nav nav-second-level collapse">
-                                <%
-                                    List<Board> boards = (List<Board>) request.getAttribute(GeneralDashboard.BOARD_LIST);
-                                    for (Board board : boards) {
-                                        out.print(String.format("<li><a href=\"/web/dashboard?board=%d\">Board %d</a></li>", board.getId(), board.getId()));
-                                    }
-                                %>
+                            <ul id="boardMenu" class="nav nav-second-level collapse">
+                                <script type="text/javascript">
+                                    $(function () {
+                                        var updateMenu = function () {
+                                            $.get("../rest/board", function (data) {
+                                                $("#boardMenu").empty();
+                                                for (var i = 0; i < data.length; i++) {
+                                                    $("#boardMenu").append("<li><a href=\"/web/dashboard?board=" + data[i].id + "\"> Board " + data[i].id + "</a></li>")
+                                                }
+                                            });
+                                        }
+
+                                        updateMenu();
+
+                                        setInterval(function () {
+                                            updateMenu();
+                                        }, <%out.print(PowerService.SAMPLE_RATE);%>);
+                                    });
+                                </script>
                             </ul>
                         </li>
                         <li>
@@ -316,7 +328,9 @@ SmartPhone Compatible web template, free WebDesigns for Nokia, Samsung, LG, Sony
                         <div class="panel-body">
                             <div class="lines-points">
                                 <div id="power_overtime_container"
-                                     style="min-width: 310px; height: 400px; margin: 0 auto"></div>
+                                     style="min-width: 310px; height: 400px; margin: 0 auto">
+                                </div>
+                                <div id="error_message"></div>
                                 <script type="text/javascript">
                                     $(function () {
                                         var chart = new Highcharts.Chart({
@@ -329,8 +343,13 @@ SmartPhone Compatible web template, free WebDesigns for Nokia, Samsung, LG, Sony
                                                             var x;
                                                             var y;
                                                             y = $.get("../rest/board/power", function (data) {
+                                                                $("#error_message").empty();
                                                                 for (var i = 0; i < data.length; i++) {
                                                                     var serie = chart.series[i];
+                                                                    if (data[i].y == -1) {
+                                                                        $("#error_message").append("Communication instability over " + chart.series[i].userOptions.name + "</br>");
+                                                                        data[i].y = 0;
+                                                                    }
                                                                     if (i == data.length - 1) {
                                                                         serie.addPoint([data[i].x, data[i].y], true, true);
                                                                     }
@@ -351,10 +370,17 @@ SmartPhone Compatible web template, free WebDesigns for Nokia, Samsung, LG, Sony
                                                                         var data2 = [];
                                                                         var j;
                                                                         for (j = 0; j < data[i].x.length; j++) {
-                                                                            data2.push({
-                                                                                x: data[i].x[j],
-                                                                                y: data[i].y[j]
-                                                                            });
+                                                                            if (data[i].y[j] == -1) {
+                                                                                data2.push({
+                                                                                    x: data[i].x[j],
+                                                                                    y: 0
+                                                                                });
+                                                                            } else {
+                                                                                data2.push({
+                                                                                    x: data[i].x[j],
+                                                                                    y: data[i].y[j]
+                                                                                });
+                                                                            }
                                                                         }
                                                                         return data2;
                                                                     }())

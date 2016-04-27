@@ -37,7 +37,8 @@ public class PowerService {
     @ApiOperation(
             value = "Get the power reading for sorted list of all boards",
             response = ChartPoint.class,
-            responseContainer = "List"
+            responseContainer = "List",
+            notes = "A energy value of -1 means that it was not possible to read that specific board information"
     )
     public List<ChartPoint> getInstantenousPowerForBoards() throws JsonProcessingException, ServletException {
         Date date = new Date();
@@ -53,7 +54,7 @@ public class PowerService {
         HashMap<Integer, List<Double>> boardToEnergy = new HashMap<>();
 
         long start = date.getTime();
-        long delay = TimeUnit.SECONDS.toMillis(30);
+        long delay = 0;
 
         //Initialize
         for (Board board : boardList) {
@@ -76,7 +77,7 @@ public class PowerService {
             if (boardToEnergy.get(board.getId()).size() != 0) {
                 boardAverage = boardToEnergy.get(board.getId()).stream().mapToDouble(a -> a).average().getAsDouble();
             } else {
-                boardAverage = 0;
+                boardAverage = -1;
             }
             result.add(new ChartPoint(boardAverage, date.getTime(), getBoardSeriesName(board.getId())));
         }
@@ -151,7 +152,9 @@ public class PowerService {
     @Produces("application/json")
     @ApiOperation(
             value = "Get a power reading for a specific board. It gives you the energy per task organized by channel",
-            response = ChartSeries.class
+            response = ChartSeries.class,
+            responseContainer = "List",
+            notes = "Send lastMilliseconds as -1 to sample for all historic data."
     )
     public List<ChartSeries> getInstantenousChannelReadingPerBoard(@PathParam("boardId") @ApiParam(value = "Use boardId as filter") int boardId, @ApiParam(value = "Get a average for the lastMilliseconds") @QueryParam("lastMilliseconds") Long lastMilliseconds) throws JsonProcessingException, ServletException {
         long stopTimeStamp = new Date().getTime();

@@ -14,16 +14,13 @@ import java.util.List;
  * Created by urbano on 4/20/16.
  */
 public class BoardDashboard {
-    public static final String BOARD_LIST = "boardList";
     public static final String BOARDID = "BoardId";
 
     public static void prepareBoardPage(int boardId, HttpServletRequest request, HttpServletResponse response, DatabasePersistenceLayer databasePersistenceLayer) throws ServletException, IOException {
         List<Board> boards = databasePersistenceLayer.getBoards(null);
-        request.setAttribute(BOARD_LIST, boards);
         request.setAttribute(BOARDID, boardId);
         request.setAttribute(PreparePowerChart.CHANNEL_CATEGORIES, PreparePowerChart.channelCategories());
 
         request.getRequestDispatcher("/web/board.jsp").forward(request, response);
     }
-
 }

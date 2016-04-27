@@ -2,18 +2,18 @@ package edu.cmu.lpsoca.oscilloscope.services;
 
 import edu.cmu.lpsoca.model.Board;
 import edu.cmu.lpsoca.model.Command;
-import edu.cmu.lpsoca.model.command.Start;
+import edu.cmu.lpsoca.model.command.DeleteBoard;
 import edu.cmu.lpsoca.oscilloscope.exceptions.BoardNotFoundException;
 import edu.cmu.lpsoca.oscilloscope.exceptions.DatabaseConnectionError;
 import edu.cmu.lpsoca.persistance.DatabasePersistenceLayer;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
 
 import javax.servlet.ServletException;
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import java.sql.SQLException;
 
 /**
@@ -21,29 +21,24 @@ import java.sql.SQLException;
  */
 @Path("/board")
 @Api(value = "/Board")
-public class StartService {
+public class DeleteBoardService {
 
     @POST
-    @Path("{id}/start")
-    @Consumes({MediaType.APPLICATION_JSON})
-    @Produces(MediaType.APPLICATION_JSON)
+    @Path("{id}/delete")
+    @Produces("application/json")
     @ApiOperation(
-            value = "Start the data sampling into the board"
+            value = "Delete a board from the database",
+            response = boolean.class
     )
-    @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "Successful starting the board"),
-            @ApiResponse(code = 500, message = "Internal server error"),
-            @ApiResponse(code = 409, message = "Could not find the specified board ID"),
-            @ApiResponse(code = 400, message = "Invalid arguments")})
-    public boolean start(@PathParam("id") int id) throws BoardNotFoundException, DatabaseConnectionError {
+    public boolean getById(@PathParam("id") int id) throws BoardNotFoundException, DatabaseConnectionError {
         try {
             DatabasePersistenceLayer databasePersistenceLayer = new DatabasePersistenceLayer();
             Board board = databasePersistenceLayer.getBoard(id);
             if (board == null) {
                 throw new BoardNotFoundException(String.valueOf(id));
             }
-            Command start = new Start(board);
-            boolean result = start.execute();
+            Command deleteBoard = new DeleteBoard(board);
+            boolean result = deleteBoard.execute();
             databasePersistenceLayer.terminate();
             return result;
         } catch (SQLException e) {

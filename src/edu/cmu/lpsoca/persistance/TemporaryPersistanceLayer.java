@@ -25,7 +25,7 @@ public class TemporaryPersistanceLayer implements PersistencyService {
         return mInstance;
     }
 
-    public synchronized boolean insertMessage(Board board, Message msg) {
+    public synchronized boolean insertMessage(Board board, Message msg, int sampleId) {
         if (!mBoardLinkedList.containsKey(board)) mBoardLinkedList.put(board, new LinkedList<String>());
 
         Queue<String> stringArrayList = mBoardLinkedList.get(board);

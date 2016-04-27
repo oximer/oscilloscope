@@ -28,7 +28,7 @@ public class DatabasePersistenceLayer implements PersistencyService {
         connection.setAutoCommit(false);
     }
 
-    public synchronized boolean insertMessage(Board board, Message msg) {
+    public synchronized boolean insertMessage(Board board, Message msg, int sampleId) {
         try {
 
             int id = getBoardId(board.getName());
@@ -45,7 +45,7 @@ public class DatabasePersistenceLayer implements PersistencyService {
             PreparedStatement preparedStmt = connection.prepareStatement(sql);
             preparedStmt.setInt(1, id);
             preparedStmt.setInt(2, msg.getTaskId());
-            preparedStmt.setInt(3, 1);
+            preparedStmt.setInt(3, sampleId);
             preparedStmt.setFloat(4, msg.getChannel1());
             preparedStmt.setFloat(5, msg.getChannel2());
             preparedStmt.setFloat(6, msg.getChannel3());
@@ -60,6 +60,22 @@ public class DatabasePersistenceLayer implements PersistencyService {
             System.out.print("insertMessage" + e.getCause() + e.getMessage());
         }
         return false;
+    }
+
+    public synchronized int getNumberOfMessageSamples() {
+        try {
+            Statement stmt = connection.createStatement();
+            String sql = String.format("SELECT MAX(SampleId) As max FROM oscilloscope.Messages;");
+            ResultSet rs = stmt.executeQuery(sql);
+            rs.next();
+            int number = rs.getInt("max");
+            rs.close();
+            stmt.close();
+            return number;
+        } catch (Exception e) {
+            System.out.print("getNumberOfMessageSamples" + e.getCause() + e.getMessage());
+        }
+        return -1;
     }
 
     private synchronized int registerBoard(Board board) {
@@ -288,5 +304,54 @@ public class DatabasePersistenceLayer implements PersistencyService {
         return result;
     }
 
+    public int updateBoardLastUpdateTime(Board board) {
+        Calendar calendar = Calendar.getInstance();
+        Timestamp timestamp = new Timestamp(calendar.getTime().getTime());
+        int result = -1;
+        int boardId = getBoardId(board.getName());
+        if (boardId == -1) return -1;
+        try {
+            String query = "UPDATE oscilloscope.Devices SET lastUpdated = ? where id = ?;";
+            PreparedStatement preparedStmt = connection.prepareStatement(query);
+            preparedStmt.setTimestamp(1, timestamp);
+            preparedStmt.setInt(2, boardId);
+            result = preparedStmt.executeUpdate();
+            preparedStmt.close();
+            connection.commit();
+        } catch (Exception e) {
+            return result;
+        }
+        return result;
+    }
 
+
+    public int deleteAllMessageFromBoard(int boardId) {
+        int result = -1;
+        try {
+            String query = "DELETE FROM oscilloscope.Messages WHERE boardId = ? LIMIT 1000;";
+            PreparedStatement preparedStmt = connection.prepareStatement(query);
+            preparedStmt.setInt(1, boardId);
+            result = preparedStmt.executeUpdate();
+            preparedStmt.close();
+            connection.commit();
+        } catch (Exception e) {
+            return result;
+        }
+        return result;
+    }
+
+    public int deleteBoard(int boardId) {
+        int result = -1;
+        try {
+            String query = "DELETE FROM oscilloscope.Devices WHERE id = ?;";
+            PreparedStatement preparedStmt = connection.prepareStatement(query);
+            preparedStmt.setInt(1, boardId);
+            result = preparedStmt.executeUpdate();
+            preparedStmt.close();
+            connection.commit();
+        } catch (Exception e) {
+            return result;
+        }
+        return result;
+    }
 }

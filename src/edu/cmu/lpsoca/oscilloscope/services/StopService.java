@@ -9,6 +9,7 @@ import edu.cmu.lpsoca.persistance.DatabasePersistenceLayer;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 
+import javax.servlet.ServletException;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -37,8 +38,12 @@ public class StopService {
                 throw new BoardNotFoundException(String.valueOf(id));
             }
             Command stop = new Stop(board);
-            return stop.execute();
+            boolean result = stop.execute();
+            databasePersistenceLayer.terminate();
+            return result;
         } catch (SQLException e) {
+            throw new DatabaseConnectionError(e);
+        } catch (ServletException e) {
             throw new DatabaseConnectionError(e);
         }
     }

@@ -23,7 +23,7 @@ public class Stop implements Command {
 
     public boolean execute() {
         try {
-            MyMqttClient.getInstance().sendMessage(board.getApplicationId(), String.valueOf(board.getId()), MESSAGE);
+            MyMqttClient.getInstance().sendMessage(board.getApplicationId(), String.valueOf(board.getName()), MESSAGE);
         } catch (MqttException e) {
             return false;
         }

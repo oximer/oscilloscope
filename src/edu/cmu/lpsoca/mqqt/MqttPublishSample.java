@@ -21,7 +21,7 @@ public class MqttPublishSample {
 
     public static void main(String[] args) throws SQLException {
 
-        String broker = "tcp://172.29.93.223:1883";
+        String broker = "tcp://172.29.93.42:1883";
         String clientId = "JavaSample";
         MemoryPersistence persistence = new MemoryPersistence();
         final DatabasePersistenceLayer databasePersistanceLayer = new DatabasePersistenceLayer();
@@ -52,9 +52,15 @@ public class MqttPublishSample {
                     str.nextToken(); //Ignore port
                     board.setName(str.nextToken());
                     board.setLastUpdated(new Timestamp(new Date().getTime()));
-                    List<Message> messageList = MqttMessageParser.parseMessage(board.getId(), String.valueOf(mqttMessage));
-                    for (Message message : messageList) {
-                        databasePersistanceLayer.insertMessage(board, message);
+                    if (mqttMessage.toString().equals("PING")) {
+                        databasePersistanceLayer.updateBoardLastUpdateTime(board);
+                    } else {
+                        List<Message> messageList = MqttMessageParser.parseMessage(board.getId(), String.valueOf(mqttMessage));
+                        int sampleId = databasePersistanceLayer.getNumberOfMessageSamples();
+                        sampleId++;
+                        for (Message message : messageList) {
+                            databasePersistanceLayer.insertMessage(board, message, sampleId);
+                        }
                     }
                 }
 

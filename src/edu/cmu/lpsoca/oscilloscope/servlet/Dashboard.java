@@ -18,7 +18,6 @@ import java.sql.SQLException;
  */
 @WebServlet(name = "Dashboard")
 public class Dashboard extends HttpServlet {
-    public static final String BOARD_LIST = "boardList";
     private DatabasePersistenceLayer databasePersistenceLayer;
     final Logger logger = Logger.getLogger(Dashboard.class);
 

@@ -1,8 +1,6 @@
-<%@ page import="edu.cmu.lpsoca.model.Board" %>
 <%@ page import="edu.cmu.lpsoca.oscilloscope.services.PowerService" %>
 <%@ page import="edu.cmu.lpsoca.oscilloscope.servlet.dashboardImpl.BoardDashboard" %>
 <%@ page import="edu.cmu.lpsoca.util.chart.PreparePowerChart" %>
-<%@ page import="java.util.List" %>
 <!--
 Author: W3layouts
 Author URL: http://w3layouts.com
@@ -74,13 +72,25 @@ SmartPhone Compatible web template, free WebDesigns for Nokia, Samsung, LG, Sony
                         </li>
                         <li>
                             <a href="#"><i class="fa fa-cogs nav_icon"></i>Boards<span class="fa arrow"></span></a>
-                            <ul class="nav nav-second-level collapse">
-                                <%
-                                    List<Board> boards = (List<Board>) request.getAttribute(BoardDashboard.BOARD_LIST);
-                                    for (Board board : boards) {
-                                        out.print(String.format("<li><a href=\"/web/dashboard?board=%d\">Board %d</a></li>", board.getId(), board.getId()));
-                                    }
-                                %>
+                            <ul id="boardMenu" class="nav nav-second-level collapse">
+                                <script type="text/javascript">
+                                    $(function () {
+                                        var updateMenu = function () {
+                                            $.get("../rest/board", function (data) {
+                                                $("#boardMenu").empty();
+                                                for (var i = 0; i < data.length; i++) {
+                                                    $("#boardMenu").append("<li><a href=\"/web/dashboard?board=" + data[i].id + "\"> Board " + data[i].id + "</a></li>")
+                                                }
+                                            });
+                                        }
+
+                                        updateMenu();
+
+                                        setInterval(function () {
+                                            updateMenu();
+                                        }, <%out.print(PowerService.SAMPLE_RATE);%>);
+                                    });
+                                </script>
                             </ul>
                         </li>
                         <li>
@@ -135,6 +145,10 @@ SmartPhone Compatible web template, free WebDesigns for Nokia, Samsung, LG, Sony
                             <div data-example-id="simple-form-inline">
                                 <button id="start" type="submit" class="btn btn-default hvr-radial-in">Start</button>
                                 <button id="stop" type="submit" class="btn btn-default hvr-radial-in">Stop</button>
+                                <button id="clear" type="submit" class="btn btn-default hvr-radial-in">Clear Data
+                                </button>
+                                <button id="delete" type="submit" class="btn btn-default hvr-radial-in">Delete Board
+                                </button>
                                 <script type="text/javascript">
                                     $(function () {
                                         $('#start').click(
@@ -148,6 +162,21 @@ SmartPhone Compatible web template, free WebDesigns for Nokia, Samsung, LG, Sony
                                                 function () {
                                                     $.post("../rest/board/<%out.print(String.valueOf(request.getAttribute(BoardDashboard.BOARDID)));%>/stop", function (data) {
                                                         alert("Command sent");
+                                                    });
+                                                }
+                                        )
+                                        $('#clear').click(
+                                                function () {
+                                                    $.post("../rest/board/<%out.print(String.valueOf(request.getAttribute(BoardDashboard.BOARDID)));%>/clear", function (data) {
+                                                        alert("Command sent");
+                                                    });
+                                                }
+                                        )
+                                        $('#delete').click(
+                                                function () {
+                                                    $.post("../rest/board/<%out.print(String.valueOf(request.getAttribute(BoardDashboard.BOARDID)));%>/delete", function (data) {
+                                                        alert("Command sent");
+                                                        window.location.href = "/web/dashboard";
                                                     });
                                                 }
                                         )
